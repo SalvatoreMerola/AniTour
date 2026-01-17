@@ -84,7 +84,7 @@ Assicurati di avere installato sulla tua macchina:
 
 ### 1. Configurazione Database
 1.  Creare un database MySQL vuoto denominato `AniTour`.
-2.  Importare lo schema iniziale (se presente nella cartella `db/`) o assicurarsi che il DAO possa generare le tabelle.
+2.  Importare lo schema database presente nel file db/schema.sql per creare la struttura iniziale su MySQL.
 3.  Configurare le credenziali nel file di properties o nella classe di connessione DB.
 
 ### 2. Importazione Progetto
