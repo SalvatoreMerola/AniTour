@@ -1,11 +1,13 @@
 package com.anitour.model;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CartTest {
 
     @Test
+    @DisplayName("Happy Path")
     void testHappyPath() {
         Cart cart = new Cart();
         cart.addTour(101, "Sekiro Tour", 25.50);
@@ -16,6 +18,7 @@ class CartTest {
     }
 
     @Test
+    @DisplayName("Svuota carrello")
     void testSvuotaCarrello() {
         Cart cart = new Cart();
         cart.addTour(101, "Sekiro Tour", 25.50);

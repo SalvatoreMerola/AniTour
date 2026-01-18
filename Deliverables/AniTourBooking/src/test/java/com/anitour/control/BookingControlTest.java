@@ -8,7 +8,6 @@ import com.anitour.model.PaymentDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -19,7 +18,6 @@ import static org.mockito.Mockito.*;
 
 class BookingControlTest {
 
-    // Utilizzo i mock per simulare le interfacce dell'ODD
     @Mock
     private IBookingRepository mockRepo;
     @Mock
@@ -29,7 +27,6 @@ class BookingControlTest {
 
     @BeforeEach
     void setUp() {
-        // Inizializza i mock e iniettali nel controller
         MockitoAnnotations.openMocks(this);
         controller = new BookingControl(mockRepo, mockGateway);
     }
@@ -37,29 +34,26 @@ class BookingControlTest {
     @Test
     @DisplayName("Test ProcessCheckout: Successo (ODD 3.1.1)")
     void testProcessCheckout_Success() throws Exception {
-        // 1. SETUP (Given)
+        // 1. SETUP
         Cart cart = new Cart();
         cart.addTour(1, "One Piece", 2050.0);
         PaymentDTO payment = new PaymentDTO("1234-5678-9012-3456");
 
-        // Istruzioni mock:
-        // "Quando ti chiedono di pagare, dì di SÌ" (Simula ODD 3.2.1)
+        // Diciamo al Mock che c'è disponibilità, altrimenti ritorna false e lancia eccezione
+        when(mockRepo.checkAvailability(anyInt(), anyInt())).thenReturn(true);
+
         when(mockGateway.processPayment(anyDouble(), any(PaymentDTO.class))).thenReturn(true);
-        // "Quando ti chiedono di salvare, restituisci ID 100" (Simula ODD 3.3.1)
         when(mockRepo.save(any(Booking.class))).thenReturn(100);
 
-        // 2. ACTION (When)
+        // 2. ACTION
         Booking result = controller.processCheckout(cart, payment);
 
-        // 3. VERIFY (Then)
+        // 3. VERIFY
         assertNotNull(result);
         assertEquals(100, result.getId());
         assertEquals("CONFIRMED", result.getStatus());
+        assertTrue(cart.isEmpty());
 
-        // Verifica Post-Condizione ODD: Il carrello deve essere svuotato
-        assertTrue(cart.isEmpty(), "Il carrello deve essere vuoto dopo l'acquisto");
-
-        // Verifica interazioni: Siamo sicuri che abbia chiamato la banca?
         verify(mockGateway).processPayment(2050.0, payment);
     }
 
@@ -71,6 +65,10 @@ class BookingControlTest {
         cart.addTour(1, "Dragon Ball", 4500.0);
         PaymentDTO payment = new PaymentDTO("CARD-SCADUTA");
 
+        // Anche se la banca fallisce, il controllo disponibilità avviene PRIMA.
+        // Se non mettiamo true, fallirebbe per SoldOutException invece che per la banca.
+        when(mockRepo.checkAvailability(anyInt(), anyInt())).thenReturn(true);
+
         // La banca rifiuta
         when(mockGateway.processPayment(anyDouble(), any())).thenReturn(false);
 
@@ -80,8 +78,6 @@ class BookingControlTest {
         });
 
         assertEquals("Pagamento rifiutato dalla banca", e.getMessage());
-
-        // Verifica che NON abbiamo salvato nulla nel DB
         verify(mockRepo, never()).save(any());
     }
 }
