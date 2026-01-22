@@ -36,7 +36,7 @@ public class BookingSystemTest {
     @DisplayName("TC-BOOK-01: Acquisto con successo (Happy Path)")
     void testAcquistoConSuccesso() throws Exception {
         Cart cart = new Cart();
-        cart.addTour(1, "Persona 5 Tour", 100.0);
+        cart.addTour(1, "Persona 5 Royal Tour", 5000.0);
         PaymentDTO payment = new PaymentDTO("4000-0000-0000-0000");
 
         when(mockRepo.checkAvailability(anyInt(), anyInt())).thenReturn(true);
@@ -74,7 +74,7 @@ public class BookingSystemTest {
     @DisplayName("TC-BOOK-03: Pagamento Rifiutato")
     void testPagamentoRifiutato() {
         Cart cart = new Cart();
-        cart.addTour(1, "Tour Costoso", 2000.0);
+        cart.addTour(1, "Tour Costoso", 10000.0);
         PaymentDTO payment = new PaymentDTO("4000-9999-9999-9999");
 
         when(mockRepo.checkAvailability(anyInt(), anyInt())).thenReturn(true);
