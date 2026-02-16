@@ -131,6 +131,37 @@ public class SystemTest {
         assertTrue(isPaymentFailed, "La pagina avrebbe dovuto mostrare l'errore PaymentFailedException.");
     }
 
+    @Test
+    @Order(4)
+    @DisplayName("TC-BOOK-04: System Test - Carrello Vuoto")
+    public void testCarrelloVuoto() {
+        System.out.println("--- ESECUZIONE TC-BOOK-04: Carrello Vuoto ---");
+
+        // 1. Apri la pagina
+        driver.get("http://localhost:8080/anitour/checkout.jsp");
+
+        // 2. Compila il form usando l'email che lascia il carrello vuoto
+        driver.findElement(By.name("email")).sendKeys("empty@test.com");
+        driver.findElement(By.name("cardNumber")).sendKeys("1234-5678-9012-3456");
+        System.out.println("Form compilato con email trigger per carrello vuoto.");
+
+        // 3. Clicca il bottone
+        driver.findElement(By.cssSelector("button[type='submit']")).click();
+
+        // 4. Verifica il risultato
+        // Il BookingControl lancerà IllegalArgumentException: "Il carrello è vuoto!"
+        String pageSource = driver.getPageSource();
+        boolean isEmptyError = pageSource.contains("Carrello vuoto") || pageSource.contains("EmptyCartException");
+
+        if(isEmptyError) {
+            System.out.println("RISULTATO: Test Passato. Errore Carrello Vuoto visualizzato.");
+        } else {
+            System.out.println("RISULTATO: Test Fallito. L'errore non è apparso (forse l'ordine è partito?).");
+        }
+
+        assertTrue(isEmptyError, "La pagina avrebbe dovuto mostrare l'errore per carrello vuoto.");
+    }
+
     @AfterEach
     public void tearDown() {
         // Chiudi il browser a fine test
