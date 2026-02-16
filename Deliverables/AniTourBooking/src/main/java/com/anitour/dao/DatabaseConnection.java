@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
     // Parametri fissi come da Test Plan
-    private static final String URL = "jdbc:mysql://localhost:3306/AniTour";
+    private static final String URL = "jdbc:mysql://localhost:3306/anitourdb";
     private static final String USER = "root";     // User
     private static final String PASSWORD = "root"; // Password
 
