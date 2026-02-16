@@ -26,7 +26,10 @@ public class BookingServlet extends HttpServlet {
 
             // 2. Costruisco gli oggetti reali (Bottom-Up)
             Cart cart = new Cart();
-            cart.addTour(tourId, "Tour Demo", 100.0); // Prezzo fisso per demo
+            // Aggiungi il tour solo se l'email non è quella del test "Carrello vuoto"
+            if (!"empty@test.com".equals(email)) {
+                cart.addTour(tourId, "Tour Demo", 100.0);
+            }
 
             PaymentDTO payment = new PaymentDTO(cardNumber);
 
