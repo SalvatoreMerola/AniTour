@@ -1,5 +1,6 @@
 package com.anitour.control;
 
+import com.anitour.dao.BookingDAO; // Importiamo la classe concreta per usare decrementSeats
 import com.anitour.dao.IBookingRepository;
 import com.anitour.dao.IPaymentGateway;
 import com.anitour.model.Booking;
@@ -12,62 +13,50 @@ public class BookingControl {
     private IBookingRepository bookingRepo;
     private IPaymentGateway paymentGateway;
 
-    // Dependency Injection
-    // Passaggio di interfacce nel costruttore, fondamentale per test con Mockito
     public BookingControl(IBookingRepository repo, IPaymentGateway gateway) {
         this.bookingRepo = repo;
         this.paymentGateway = gateway;
     }
 
-    /**
-     Implementazione di processCheckout come da ODD Sezione 3.1.1
-     @param cart carrello dell'utente (recuperato dalla sessione)
-     @param paymentData dati della carta
-     */
     public Booking processCheckout(Cart cart, PaymentDTO paymentData) throws Exception {
+        // 1. Check Carrello Vuoto
+        if (cart == null || cart.isEmpty()) throw new IllegalArgumentException("Carrello vuoto!");
 
-        // 1. Pre-condition ODD: Carrello non vuoto
-        if (cart == null || cart.isEmpty()) {
-            throw new IllegalArgumentException("Il carrello è vuoto!");
-        }
+        // 2. Check Pagamento formale
+        if (paymentData == null || !paymentData.isValid()) throw new IllegalArgumentException("Dati pagamento invalidi");
 
-        // 2. Pre-condition ODD: Dati pagamento validi
-        if (paymentData == null || !paymentData.isValid()) {
-            throw new IllegalArgumentException("Dati pagamento non validi");
-        }
-
-        // 3. Verifica disponibilità posti (Sezione 3.3.2 - Concurrency)
-        // Prima di procedere al pagamento, verifichiamo che i tour siano ancora disponibili
+        // 3. Check Disponibilità (Concurrency)
         for (Tour t : cart.getTours()) {
-            // Supponiamo 1 posto per biglietto. Se il metodo restituisce false, il tour è Sold Out.
-            boolean isAvailable = bookingRepo.checkAvailability(t.getId(), 1);
-
-            if (!isAvailable) {
-                // Lanciamo eccezione specifica per bloccare il processo
+            if (!bookingRepo.checkAvailability(t.getId(), 1)) {
                 throw new Exception("SoldOutException: Posti esauriti per il tour " + t.getName());
             }
         }
 
-        // 4. Calcolo importo totale
-        double amount = cart.getTotal();
-
-        // 5. Chiamata al Payment Gateway (Sezione 3.2.1)
-        boolean authorized = paymentGateway.processPayment(amount, paymentData);
-
-        if (!authorized) {
-            throw new Exception("Pagamento rifiutato dalla banca");
+        // 4. Pagamento Banca
+        if (!paymentGateway.processPayment(cart.getTotal(), paymentData)) {
+            throw new Exception("PaymentFailedException: Pagamento rifiutato dalla banca");
         }
 
-        // 6. Creazione dell'Ordine
+        // 5. Crea e Salva Ordine
         Booking newBooking = new Booking(cart, Booking.CONFIRMED);
 
-        // 7. Salvataggio persistente nel DB (Sezione 3.3.1)
+        // Recuperiamo dati extra dal carrello o input per popolare il DB correttamente
+        if (!cart.getTours().isEmpty()) {
+            newBooking.setTourId(cart.getTours().get(0).getId());
+        }
+        // Nota: userId e email dovrebbero venire dalla Sessione, qui il DAO metterà quelli di default se nulli
+
         int newId = bookingRepo.save(newBooking);
         newBooking.setId(newId);
 
-        // 8. Post-condition ODD: Svuota carrello a transazione conclusa
-        cart.clear();
+        // 6. SCALA I POSTI (Step Mancante Fondamentale!)
+        if (bookingRepo instanceof BookingDAO) {
+            for (Tour t : cart.getTours()) {
+                ((BookingDAO) bookingRepo).decrementSeats(t.getId(), 1);
+            }
+        }
 
+        cart.clear();
         return newBooking;
     }
 }
