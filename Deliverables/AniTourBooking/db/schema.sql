@@ -1,56 +1,86 @@
 CREATE DATABASE IF NOT EXISTS anitourdb;
 USE anitourdb;
 
--- 1. Tabella Utenti (Necessaria per la Foreign Key di bookings)
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    surname VARCHAR(100),
-    email VARCHAR(150),
-    password VARCHAR(255)
-    );
-
--- 2. Tabella Tour (Necessaria per gestire disponibilità e info)
-CREATE TABLE IF NOT EXISTS tour (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price DOUBLE NOT NULL,
-    available_seats INT NOT NULL
-    );
-
--- 3. Tabella Prenotazioni (Aggiornata con i campi del Java Bean)
-CREATE TABLE IF NOT EXISTS bookings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    tour_id INT NOT NULL,
-    customer_email VARCHAR(150),
-    price DOUBLE,
-    status VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    -- Vincoli di integrità referenziale
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (tour_id) REFERENCES tour(id)
-    );
+-- ==========================================
+-- 1. PULIZIA
+-- ==========================================
+DROP TABLE IF EXISTS bookings;
+DROP TABLE IF EXISTS tour;
+DROP TABLE IF EXISTS users;
 
 -- ==========================================
--- DATI DI INIZIALIZZAZIONE (SEED DATA)
+-- 2. CREAZIONE TABELLE
 -- ==========================================
 
--- Inseriamo l'Utente ID 99 (usato nel BookingDAOIntegrationTest)
+-- Tabella Utenti
+CREATE TABLE users (
+                       id INT AUTO_INCREMENT PRIMARY KEY,
+                       name VARCHAR(100),
+                       surname VARCHAR(100),
+                       email VARCHAR(150),
+                       password VARCHAR(255)
+);
+
+-- Tabella Tour
+CREATE TABLE tour (
+                      id INT AUTO_INCREMENT PRIMARY KEY,
+                      name VARCHAR(255) NOT NULL,
+                      description TEXT,
+                      price DOUBLE NOT NULL,
+                      available_seats INT NOT NULL,
+                      image_path VARCHAR(500)
+);
+
+-- Tabella Prenotazioni
+CREATE TABLE bookings (
+                          id INT AUTO_INCREMENT PRIMARY KEY,
+                          user_id INT NOT NULL,
+                          tour_id INT NOT NULL,
+                          customer_email VARCHAR(150),
+                          price DOUBLE,
+                          status VARCHAR(50) NOT NULL,
+                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          FOREIGN KEY (user_id) REFERENCES users(id),
+                          FOREIGN KEY (tour_id) REFERENCES tour(id)
+);
+
+-- ==========================================
+-- 3. DATI DI INIZIALIZZAZIONE
+-- ==========================================
+
+-- Utente di test (ID 99)
 INSERT INTO users (id, name, surname, email, password)
-VALUES (99, 'Mario', 'Rossi', 'test@anitour.com', 'password123')
-    ON DUPLICATE KEY UPDATE email=VALUES(email);
+VALUES (99, 'Mario', 'Rossi', 'test@anitour.com', 'password123');
 
--- Inseriamo il Tour ID 1 (usato nella Demo Happy Path)
--- Prezzo: 100.0, Posti: 50
-INSERT INTO tour (id, name, description, price, available_seats)
-VALUES (1, 'Tour Demo', 'Un tour dimostrativo per il test', 100.0, 50)
-    ON DUPLICATE KEY UPDATE available_seats=50;
+-- ==========================================
+-- 3. DATI DI INIZIALIZZAZIONE (SEED DATA)
+-- ==========================================
 
--- Inseriamo il Tour ID 2 (usato per il test Sold Out)
--- Prezzo: 150.0, Posti: 0 (Già esaurito)
-INSERT INTO tour (id, name, description, price, available_seats)
-VALUES (2, 'Tour SoldOut', 'Tour per testare la concorrenza', 150.0, 0)
-    ON DUPLICATE KEY UPDATE available_seats=0;
+-- Utente di test (ID 99)
+INSERT INTO users (id, name, surname, email, password)
+VALUES (99, 'Mario', 'Rossi', 'test@anitour.com', 'password123');
+
+INSERT INTO tour (id, name, description, price, available_seats, image_path)
+VALUES (1,
+        'Tour Yharnam: La Notte della Caccia',
+        'Un viaggio oscuro tra le guglie gotiche di Yharnam. Visita la Clinica di Iosefka, la Grande Cattedrale e sopravvivi alla notte della caccia.',
+        1250.00,
+        50,
+        'images/bloodborne.jpg');
+
+-- TOUR ESAURITO
+INSERT INTO tour (id, name, description, price, available_seats, image_path)
+VALUES (2,
+        'Sekiro: Shadows Die Twice Tour',
+        'Esplora il castello di Ashina e le montagne innevate del Giappone feudale. Attenzione: difficoltà elevata! (Posti Esauriti)',
+        3000.00,
+        0,
+        'images/sekiro.jpg');
+
+INSERT INTO tour (id, name, description, price, available_seats, image_path)
+VALUES (3,
+        'Persona 5: Tokyo Phantom Thieves',
+        'Vivi la vita di uno studente a Tokyo. Visita Shibuya, Yongen-Jaya e prova il famoso curry del Leblanc.',
+        4500.00,
+        30,
+        'images/persona5.jpg');

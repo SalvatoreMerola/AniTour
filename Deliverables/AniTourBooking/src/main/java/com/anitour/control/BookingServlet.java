@@ -1,34 +1,110 @@
 package com.anitour.control;
 
 import com.anitour.dao.BookingDAO;
-import com.anitour.dao.RealPaymentGateway; // La classe creata al passo 2
+import com.anitour.dao.DatabaseConnection; // Import necessario
+import com.anitour.dao.RealPaymentGateway;
 import com.anitour.model.Booking;
 import com.anitour.model.Cart;
 import com.anitour.model.PaymentDTO;
+import com.anitour.model.Tour;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Connection;        // Import SQL
+import java.sql.PreparedStatement; // Import SQL
+import java.sql.ResultSet;         // Import SQL
+import java.util.ArrayList;
+import java.util.List;
 
 @WebServlet(name = "BookingServlet", urlPatterns = {"/prenota"})
 public class BookingServlet extends HttpServlet {
 
+    /**
+     * LETTURA DA DB
+     */
+    private Tour getTourById(int id) {
+        Tour tour = null;
+        String sql = "SELECT * FROM tour WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Costruiamo l'oggetto con i dati freschi dal DB
+                    tour = new Tour(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getDouble("price"),
+                            rs.getString("description"),
+                            rs.getString("image_path")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Fallback di sicurezza se il DB fallisce o ID non esiste
+        if (tour == null) {
+            tour = new Tour(id, "Tour Non Trovato", 0.0, "Errore caricamento", "");
+        }
+
+        return tour;
+    }
+
+    /**
+     * GESTISCE L'ARRIVO DAL CATALOGO (GET)
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String tourIdParam = request.getParameter("tourId");
+
+        if (tourIdParam == null || tourIdParam.isEmpty()) {
+            response.sendRedirect("home");
+            return;
+        }
+
+        try {
+            int tourId = Integer.parseInt(tourIdParam);
+
+            Tour selectedTour = getTourById(tourId);
+
+            List<Tour> cartItems = new ArrayList<>();
+            cartItems.add(selectedTour);
+
+            request.setAttribute("cartItems", cartItems);
+            request.setAttribute("selectedTourId", tourId);
+
+            request.getRequestDispatcher("checkout.jsp").forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendRedirect("home");
+        }
+    }
+
+    /**
+     * GESTISCE IL PAGAMENTO (POST)
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            // 1. Recupero dati dalla form HTML
-            String email = request.getParameter("email");
+            String email = request.getParameter("shippingEmail");
             String cardNumber = request.getParameter("cardNumber");
-            // Per semplicità demo, fissiamo un Tour ID e quantità
-            int tourId = 1;
 
-            // 2. Costruisco gli oggetti reali (Bottom-Up)
+            String tourIdParam = request.getParameter("tourId");
+            int tourId = (tourIdParam != null && !tourIdParam.isEmpty()) ? Integer.parseInt(tourIdParam) : 1;
+
             Cart cart = new Cart();
-            // Aggiungi il tour solo se l'email non è quella del test "Carrello vuoto"
+            // ORA ANCHE QUI LEGGE DAL DB
+            Tour tour = getTourById(tourId);
+
             if (!"empty@test.com".equals(email)) {
-                cart.addTour(tourId, "Tour Demo", 100.0);
+                cart.addTour(tour.getId(), tour.getName(), tour.getPrice());
             }
 
             PaymentDTO payment = new PaymentDTO(cardNumber);
@@ -37,20 +113,21 @@ public class BookingServlet extends HttpServlet {
             RealPaymentGateway gateway = new RealPaymentGateway();
             BookingControl control = new BookingControl(dao, gateway);
 
-            // 3. Eseguo il checkout
-            Booking booking = control.processCheckout(cart, payment);
+            Booking booking = control.processCheckout(cart, payment, email, 99);
 
-            // CASO SUCCESSO:
-            // Passo l'ID ordine alla JSP di successo
             request.setAttribute("orderId", booking.getId());
-            // Inoltro (Forward) l'utente alla pagina di successo
             request.getRequestDispatcher("success.jsp").forward(request, response);
 
         } catch (Exception e) {
-            // CASO ERRORE (SoldOut o Pagamento Fallito):
-            // Metto il messaggio dell'eccezione nell'attributo "errorMessage"
-            request.setAttribute("errorMessage", e.getMessage());
-            // Ricarico la stessa pagina di checkout per mostrare l'errore
+            request.setAttribute("error", e.getMessage());
+
+            // Ricarico i dati corretti dal DB anche in caso di errore
+            String tourIdParam = request.getParameter("tourId");
+            int tourId = (tourIdParam != null && !tourIdParam.isEmpty()) ? Integer.parseInt(tourIdParam) : 1;
+            List<Tour> cartItems = new ArrayList<>();
+            cartItems.add(getTourById(tourId));
+            request.setAttribute("cartItems", cartItems);
+
             request.getRequestDispatcher("checkout.jsp").forward(request, response);
         }
     }
