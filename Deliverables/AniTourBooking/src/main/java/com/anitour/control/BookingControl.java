@@ -49,7 +49,7 @@ public class BookingControl {
         int newId = bookingRepo.save(newBooking);
         newBooking.setId(newId);
 
-        // 6. SCALA I POSTI (Step Mancante Fondamentale!)
+        // 6. SCALA I POSTI
         if (bookingRepo instanceof BookingDAO) {
             for (Tour t : cart.getTours()) {
                 ((BookingDAO) bookingRepo).decrementSeats(t.getId(), 1);
