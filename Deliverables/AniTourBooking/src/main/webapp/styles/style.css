@@ -1,0 +1,306 @@
+/*VARIABILI*/
+:root {
+    --text: #1c0b0b;
+    --background: #e9f6f9;
+    --primary: #d14241;
+    --secondary: #ea8c8b;
+    --accent: #e95756;
+    --card: #e9e1e3;
+}
+
+/*GLOBALE*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/*ANIMAZIONI*/
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+body {
+    font-family: "Farro", sans-serif;
+    background-color: var(--background);
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.6;
+}
+/*Scrollbar*/
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(209, 66, 65, 0.3);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(209, 66, 65, 0.5);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: rgba(209, 66, 65, 0.7);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(209, 66, 65, 0.3) transparent;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  padding-top: 100px;
+  padding-bottom: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (max-width: 600px) {
+  .main-content {
+    padding-top: 70px;
+  }
+}
+
+/* BUTTONS */
+.btn1 {
+  color: var(--background);
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--accent);
+  border: none;
+  border-radius: 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  font-family: "Farro", sans-serif;
+}
+
+.btn1:hover {
+  background-color: var(--primary);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn1:active {
+  transform: translateY(0);
+}
+
+/* FONTS */
+@font-face {
+  font-family: "Farro";
+  src: url("/AniTour/styles/fonts/Farro-Light.ttf");
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Farro";
+  src: url("/AniTour/styles/fonts/Farro-Regular.ttf");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Farro";
+  src: url("/AniTour/styles/fonts/Farro-Medium.ttf");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Farro";
+  src: url("/AniTour/styles/fonts/Farro-Bold.ttf");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* HEADER */
+#fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background-color: var(--card);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+  padding: 0 2rem;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 600px) {
+  #fixed-header {
+    height: 60px;
+    padding: 0 1rem;
+  }
+}
+
+#header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#header-left,
+#header-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+#header-center {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#header-left {
+  justify-content: flex-start;
+}
+
+#header-right {
+  justify-content: flex-end;
+}
+
+#logo-full,
+#logo-small {
+  width: auto;
+  transition: transform 0.3s ease;
+}
+
+#logo-full {
+  height: 50px;
+  max-height: 50px;
+}
+
+#logo-small {
+  height: 40px;
+  max-height: 40px;
+}
+
+#logo-full:hover,
+#logo-small:hover {
+  transform: scale(1.05);
+}
+
+.login-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  cursor: pointer;
+  display: block;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+}
+
+.login-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* FOOTER */
+footer {
+  background-color: var(--card);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 0.5rem 0;
+  margin-top: auto;
+}
+
+#footer-content {
+  text-align: center;
+  margin: 0;
+  padding: 0.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#footer-content p {
+  margin: 0.3rem 0 0 0;
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+#footer-content img {
+  height: 25px;
+  width: auto;
+  transition: transform 0.3s ease;
+}
+
+#footer-login {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.error-message {
+    color: var(--accent);
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+/* Contatore carrello */
+.cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: var(--primary);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease, background-color 0.3s ease; /* Transizione fluida per l'opacità */
+}

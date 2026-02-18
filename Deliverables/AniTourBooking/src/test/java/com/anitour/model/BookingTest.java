@@ -20,6 +20,19 @@ class BookingTest {
     }
 
     @Test
+    void testGestioneStati() {
+        Booking b = new Booking();
+
+        // 1. Verifico stato iniziale o PENDING
+        b.setStatus(Booking.PENDING);
+        assertEquals("PENDING", b.getStatus(), "Lo stato dovrebbe essere PENDING");
+
+        // 2. Simulo conferma ordine
+        b.setStatus(Booking.CONFIRMED);
+        assertEquals("CONFIRMED", b.getStatus(), "Lo stato dovrebbe essere aggiornato a CONFIRMED");
+    }
+
+    @Test
     void testGetterSetter() {
         Booking b = new Booking();
         b.setCustomerEmail("test@email.com");
