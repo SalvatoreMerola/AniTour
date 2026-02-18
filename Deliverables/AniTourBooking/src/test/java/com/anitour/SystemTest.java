@@ -32,7 +32,7 @@ public class SystemTest {
         driver.manage().window().maximize();
 
         // RESET DATI NEL DB
-        updateTourSeats(1, 50); // Bloodborne
+        updateTourSeats(3, 50); // Persona 5
         updateTourSeats(2, 0);  // Sekiro
     }
 
@@ -44,9 +44,9 @@ public class SystemTest {
 
         driver.get(BASE_URL + "/home");
 
-        // Click su Bloodborne
-        WebElement bloodborneCardBtn = driver.findElement(By.cssSelector("a[href*='tourId=1'] button"));
-        bloodborneCardBtn.click();
+        // Click su Persona 5
+        WebElement personaCardBtn = driver.findElement(By.cssSelector("a[href*='tourId=3'] button"));
+        personaCardBtn.click();
 
         // Compila form
         driver.findElement(By.name("shippingEmail")).sendKeys("mariorossi@email.com");
